@@ -138,59 +138,49 @@ def main():
     print "The pubs that are known:"
     print "GEOMETRYCOLLECTION("+",".join("POINT(%f %f)" % (nodes[pub]['lon'], nodes[pub]['lat']) for pub in pubs)+")"
 
-    distance = 40
-    print "Trying with a buffer of %dm" % distance
-    print "The buffer areas of %sm around the pubs" % (distance)
-    print circles_around_nodes_wkt(pubs, nodes, distance)
-
-
-    with print_status("Calculating road/pub distances..."):
-        #pub_road_dist = calculate_distances_from_pub_to_ways(nodes, pubs, node_connections, distance_sqrd=(DISTANCE*DISTANCE))
-        node_connections = calculate_distances_from_pub_to_ways(nodes, pubs, node_connections, distance_sqrd=(distance*distance))
-
-    # pub and road segment in kilmainham for testing
-    #x1, y1, x2, y2 = -6.3078293, 53.3419385, -6.3077134, 53.3408581
-    #x, y = -6.307529, 53.341668
-    #print distance_sqrd_between_point_and_line(x, y, x1, y1, x2, y2)
-
-
-    #with print_status("Removing any connection that is within %dm from a pub" % DISTANCE):
-    #    for pub in pub_road_dist:
-    #        
-    #        # We always remove the closest road
-    #        dist_closest, (nd1, nd2) = pub_road_dist[pub][0]
-    #        node_connections[nd1].discard(nd2)
-    #        node_connections[nd2].discard(nd1)
-
-    #        for dist, (nd1, nd2) in pub_road_dist[pub][1:]:
-    #            if dist <= DISTANCE * DISTANCE:
-    #                node_connections[nd1].discard(nd2)
-    #                node_connections[nd2].discard(nd1)
-
-
     transdublin_points = one_side_of_dublin_to_the_other()
     print "Connections:"
     print "GEOMETRYCOLLECTION("+",".join("LINESTRING(%f %f, %f %f)" % (nodes[nd1]['lon'], nodes[nd1]['lat'], nodes[nd2]['lon'], nodes[nd2]['lat']) for nd1, nd2 in transdublin_points)+")"
 
-    # produce a list of the nodes at the end
-    end_points = set()
-    end_points = end_points.union(nd1 for nd1, nd2 in transdublin_points)
-    end_points = end_points.union(nd2 for nd1, nd2 in transdublin_points)
+    distance = 40
+    routes = []
+    original_node_connections = deepcopy(node_connections)
+    for distance in range(40, 1, -1):
+        node_connections = deepcopy(original_node_connections)
+        routes_at_start = len(routes)
+        print "Trying with a buffer of %dm" % distance
+        print "The buffer areas of %sm around the pubs" % (distance)
+        print circles_around_nodes_wkt(pubs, nodes, distance)
 
-    print "Num connections ", len(node_connections)
-    node_connections = remove_dead_ends(node_connections, end_points)
-    print "after removing dead ends Num connections ", len(node_connections)
 
-    print "This is the paths we can take:"
-    print all_node_connections_wkt(node_connections, nodes)
+        with print_status("Calculating road/pub distances..."):
+            node_connections = calculate_distances_from_pub_to_ways(nodes, pubs, node_connections, distance_sqrd=(distance*distance))
 
-    print "About to look for a route, there are ", sum(len(x) for x in node_connections.values())/2, " node connections"
-    for start, end in transdublin_points:
-        print "Distance to cover: LINESTRING(%s %s, %s %s)" % (nodes[start]['lon'], nodes[start]['lat'], nodes[end]['lon'], nodes[end]['lat'])
-        #for route in sort_routes(itertools.islice(find_route(start, end, nodes, node_connections, 1000), 5), nodes):
-        for route in itertools.islice(find_route(start, end, nodes, node_connections, keep_n_closest_routes=1000, max_steps=1000000000), 5):
-            coords = [(nodes[x]['lon'], nodes[x]['lat']) for x in route]
-            print "LINESTRING("+", ".join("%s %s" % x for x in coords)+")"
+        # produce a list of the nodes at the end
+        end_points = set()
+        end_points = end_points.union(nd1 for nd1, nd2 in transdublin_points)
+        end_points = end_points.union(nd2 for nd1, nd2 in transdublin_points)
+
+        print "Num connections ", len(node_connections)
+        node_connections = remove_dead_ends(node_connections, end_points)
+        print "after removing dead ends Num connections ", len(node_connections)
+
+        print "This is the paths we can take:"
+        print all_node_connections_wkt(node_connections, nodes)
+
+        print "About to look for a route, there are ", sum(len(x) for x in node_connections.values())/2, " node connections"
+        for start, end in transdublin_points:
+            print "Distance to cover: LINESTRING(%s %s, %s %s)" % (nodes[start]['lon'], nodes[start]['lat'], nodes[end]['lon'], nodes[end]['lat'])
+            for route in itertools.islice(find_route(start, end, nodes, node_connections, keep_n_closest_routes=500, max_steps=1000000), 5):
+                if len(routes) == 0:
+                    print "Found a route! distance = %d" % distance
+                routes.append(route)
+                coords = [(nodes[x]['lon'], nodes[x]['lat']) for x in route]
+                print "LINESTRING("+", ".join("%s %s" % x for x in coords)+")"
+
+        print "Found %d routes for distance = %d" % (len(routes) - routes_at_start, distance)
+
+        
     
     print "done"
 
