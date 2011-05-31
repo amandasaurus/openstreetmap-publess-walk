@@ -153,8 +153,8 @@ def main():
         print circles_around_nodes_wkt(pubs, nodes, distance)
 
 
-        with print_status("Calculating road/pub distances..."):
-            node_connections = calculate_distances_from_pub_to_ways(nodes, pubs, node_connections, distance_sqrd=(distance*distance))
+        with print_status("Removing nodes that are within %dm of a pub..."%distance):
+            node_connections = remove_node_connections_close_to_pub( nodes, pubs, node_connections, distance_sqrd=(distance*distance))
 
         # produce a list of the nodes at the end
         end_points = set()
@@ -312,7 +312,7 @@ def flat_earth_distance(lon1, lat1, lon2, lat2):
     return (dlon_m ** 2) + (dlat_m ** 2)
 
 
-def calculate_distances_from_pub_to_ways(nodes, pubs, node_connections, distance_sqrd):
+def remove_node_connections_close_to_pub(nodes, pubs, node_connections, distance_sqrd):
     """
     """
     seen_connections = set()
