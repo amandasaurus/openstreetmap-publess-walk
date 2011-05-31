@@ -124,7 +124,6 @@ def circles_around_nodes(node_ids, nodes, distance_m):
 def circles_around_nodes_wkt(node_ids, nodes, distance_m):
     circles = circles_around_nodes(node_ids, nodes, distance_m)
     return "MULTILINESTRING("+", ".join("("+", ".join(["%s %s" % point for point in circle]+["%s %s" % circle[0]]) + ")" for circle in circles)+")"
-    #return "MULTIPOLYGON("+",".join("(("+",".join("%s %s" % (point[0], point[1]) for point in circle)+"))" for circle in circles)+")"
 
 
 def main():
