@@ -439,7 +439,7 @@ def find_route(nodeA, nodeB, nodes, node_connections, keep_n_closest_routes=0, m
 
     # inital data, grow out from the start
     for x in node_connections[nodeA]:
-        heappush(going_out, ( dist(x) , [nodeA, x], set([(nodeA, x)])) )
+        heappush(going_out, ( dist(x), 1 , [nodeA, x], set([(nodeA, x)])) )
 
     # add in a set for outside edge of the 'cloud' that we are growing out, so that we can know if we hit the goal.
     steps = 0
@@ -448,7 +448,7 @@ def find_route(nodeA, nodeB, nodes, node_connections, keep_n_closest_routes=0, m
             print "Giving up finding a route after %d steps" % steps
             return
         steps += 1
-        dont_care, current_route, visited_combinations = heappop(going_out)
+        dont_care, still_dont_care, current_route, visited_combinations = heappop(going_out)
         end_point = current_route[-1]
         
         # nodes we can go from here:
@@ -459,7 +459,7 @@ def find_route(nodeA, nodeB, nodes, node_connections, keep_n_closest_routes=0, m
             if new[-1] == nodeB:
                 yield new
             else:
-                heappush(going_out, (dist(new[-1]), new, visited_combinations.union(set([new[-1]]))  )  )
+                heappush(going_out, (dist(new[-1]), len(new), new, visited_combinations.union(set([new[-1]]))  )  )
 
         if keep_n_closest_routes > 0:
             going_out = going_out[:keep_n_closest_routes]
