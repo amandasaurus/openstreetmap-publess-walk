@@ -171,7 +171,7 @@ def main():
         print "About to look for a route, there are ", sum(len(x) for x in node_connections.values())/2, " node connections"
         for start, end in transdublin_points:
             print "Distance to cover: LINESTRING(%s %s, %s %s)" % (nodes[start]['lon'], nodes[start]['lat'], nodes[end]['lon'], nodes[end]['lat'])
-            for route in itertools.islice(find_route(start, end, nodes, node_connections, keep_n_closest_routes=500, max_steps=1000000), 5):
+            for route in itertools.islice(find_route(start, end, nodes, node_connections, keep_n_closest_routes=500, max_steps=10000000), 5):
                 if len(routes) == 0:
                     print "Found a route! distance = %d" % distance
                 routes.append(route)
