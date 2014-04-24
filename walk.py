@@ -67,6 +67,7 @@ def one_side_of_dublin_to_the_other():
         9100868, 29400040, 29396438, 32336034, 32336040, 4238407,
         32336199, 12784893,
     ]
+    #southside_canal_nodes = [ 32335006 ]
 
     # starts in islandbridge (nr. phoenix park) and goes towards the point, note: order is important
     northside_canal_nodes = [
@@ -74,6 +75,7 @@ def one_side_of_dublin_to_the_other():
         659686, 659687, 659706, 26765400, 20447294, 20299851,
         12117928, 389372, 27417734,
     ]
+    #northside_canal_nodes = [ 12246878 ]
 
 
     assert len(northside_canal_nodes) == len(southside_canal_nodes), "%d vs %s" % (len(northside_canal_nodes), len(southside_canal_nodes))
@@ -137,15 +139,17 @@ def main():
 
     print "The pubs that are known:"
     print "GEOMETRYCOLLECTION("+",".join("POINT(%f %f)" % (nodes[pub]['lon'], nodes[pub]['lat']) for pub in pubs)+")"
+    print "Pubs"
+    print len(pubs)
+    return
 
     transdublin_points = one_side_of_dublin_to_the_other()
     print "Connections:"
     print "GEOMETRYCOLLECTION("+",".join("LINESTRING(%f %f, %f %f)" % (nodes[nd1]['lon'], nodes[nd1]['lat'], nodes[nd2]['lon'], nodes[nd2]['lat']) for nd1, nd2 in transdublin_points)+")"
 
-    distance = 40
     routes = []
     original_node_connections = deepcopy(node_connections)
-    for distance in range(40, 1, -1):
+    for distance in range(35, 1, -1):
         node_connections = deepcopy(original_node_connections)
         routes_at_start = len(routes)
         print "Trying with a buffer of %dm" % distance
@@ -179,6 +183,13 @@ def main():
                 print "LINESTRING("+", ".join("%s %s" % x for x in coords)+")"
 
         print "Found %d routes for distance = %d" % (len(routes) - routes_at_start, distance)
+        routes.sort(key=lambda x: len(x))
+        print "Here's our routes: "
+        for route in routes:
+            print len(route)
+            coords = [(nodes[x]['lon'], nodes[x]['lat']) for x in route]
+            print "LINESTRING("+", ".join("%s %s" % x for x in coords)+")"
+
 
         
     
