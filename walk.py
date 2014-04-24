@@ -73,7 +73,7 @@ def one_side_of_dublin_to_the_other():
     # starts in islandbridge (nr. phoenix park) and goes towards the point, note: order is important
     northside_canal_nodes = [
         12784890, 12428414, 117707333, 12246878, 11675220,
-        659686, 659687, 659706, 26765400, 20447294, 20299851,
+        659686, 659687, 659706, 26765400, 1294904418, 1419098342,
         12117928, 389372, 27417734,
     ]
     #northside_canal_nodes = [ 12246878 ]
