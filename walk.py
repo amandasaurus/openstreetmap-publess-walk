@@ -8,6 +8,7 @@ import urllib
 from contextlib import contextmanager
 from pprint import pprint
 from copy import deepcopy
+import os.path
 
 
 # in metres
@@ -89,8 +90,9 @@ def download_osm_data(output_file):
     left = -6.3161
     right = -6.2115
 
-    url = "http://www.informationfreeway.org/api/0.6/map?bbox=%s,%s,%s,%s" % (left, bottom, right, top)
-    urllib.urlretrieve(url, output_file)
+    url = "http://www.overpass-api.de/api/map?bbox=%s,%s,%s,%s" % (left, bottom, right, top)
+    if not os.path.exists(output_file):
+        urllib.urlretrieve(url, output_file)
 
 @contextmanager
 def print_status(start, end="done"):
@@ -131,8 +133,7 @@ def circles_around_nodes_wkt(node_ids, nodes, distance_m):
 def main():
     osm_file = "dublin-inside-canals.osm"
     with print_status("Downloading data"):
-        #download_osm_data(osm_file)
-        pass
+        download_osm_data(osm_file)
 
     with print_status("Parsing OSM file"):
         nodes, ways, nodes_ways, ways_ways, node_connections, pubs = parse_osm_file(osm_file)
