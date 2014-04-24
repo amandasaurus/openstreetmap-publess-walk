@@ -129,6 +129,10 @@ def circles_around_nodes_wkt(node_ids, nodes, distance_m):
     circles = circles_around_nodes(node_ids, nodes, distance_m)
     return "MULTILINESTRING("+", ".join("("+", ".join(["%s %s" % point for point in circle]+["%s %s" % circle[0]]) + ")" for circle in circles)+")"
 
+def ensure_all_nodes_exists(all_nodes, transdublin_points):
+    for node1, node2 in transdublin_points:
+        assert node1 in all_nodes, node1
+        assert node2 in all_nodes, node2
 
 def main():
     osm_file = "dublin-inside-canals.osm"
@@ -144,6 +148,8 @@ def main():
     print len(pubs)
 
     transdublin_points = one_side_of_dublin_to_the_other()
+    ensure_all_nodes_exists(nodes, transdublin_points)
+
     print "Connections:"
     print "GEOMETRYCOLLECTION("+",".join("LINESTRING(%f %f, %f %f)" % (nodes[nd1]['lon'], nodes[nd1]['lat'], nodes[nd2]['lon'], nodes[nd2]['lat']) for nd1, nd2 in transdublin_points)+")"
 
