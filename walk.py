@@ -191,8 +191,8 @@ def main():
             print "LINESTRING("+", ".join("%s %s" % x for x in coords)+")"
 
 
-        
-    
+
+
     print "done"
 
 def all_node_connections_wkt(node_connections, nodes):
@@ -221,14 +221,14 @@ def sort_routes(routes, nodes):
         heappush(routes_with_length, ( route_length(route, nodes), route) )
 
     return [x[1] for x in routes_with_length]
-    
+
 
 def remove_dead_ends(nc, keep_these_nodes):
     # In order to speed things, up let's remove all dead ends. This is nodes
     # that don't connection to anything else. However to prevent ourselves from
     # removing the start and end points, we keep all the nodes in
     # keep_these_nodes
-    
+
     def has_dead_end(nc, keep_these_nodes):
         """
         Returns true is this node_connections object has a dead end. False otherwise.
@@ -249,7 +249,7 @@ def remove_dead_ends(nc, keep_these_nodes):
                 yield nd
 
     print "Removing dead ends..."
-    
+
     # Loop over all the dead ends and remove them. We can't do this in one
     # sweep, since there might be a node like this:
     #  ...---A-----B----C
@@ -281,7 +281,7 @@ def remove_dead_ends(nc, keep_these_nodes):
 
         assert last_num_connects is None or len(nc) < last_num_connects, "We did not remove any nodes from this loop. Before this loop there were %d connections, after this loop there are %d connections. The dead ends in this iteration are %r" % (last_num_connects, len(nc), these_dead_ends)
         last_num_connects = len(nc)
-        
+
 
     print "done"
 
@@ -309,12 +309,12 @@ def degree_size_m(lon, lat):
     degree_lat_m = ( circumference_m * math.cos(math.radians(lon)) ) / 360.0
 
     return (degree_lat_m, degree_lon_m)
-    
+
 
 def flat_earth_distance(lon1, lat1, lon2, lat2):
     dlat = abs(lat1 - lat2)
     dlon = abs(lon1 - lon2)
-    
+
     degree_lon_m, degree_lat_m = degree_size_m((lon1+lon2)/2.0, lat1)
 
     dlon_m = dlon * degree_lon_m
@@ -341,7 +341,7 @@ def remove_node_connections_close_to_pub(nodes, pubs, node_connections, distance
 
         assert nd2 in node_connections[nd1]
         assert nd1 in node_connections[nd2]
-        
+
         # make nd1 the smaller of the 2, nd2 the larger. This means we only
         # need to do one check of seen_connections
         if nd2 < nd1:
@@ -374,7 +374,7 @@ def remove_node_connections_close_to_pub(nodes, pubs, node_connections, distance
             # Only keep the closest 200
             #distances[pub['id']] = distances[pub['id']][:200]
 
-    
+
     return node_connections
 
 def distance_sqrd_between_point_and_line(x, y, x1, y1, x2, y2):
@@ -391,7 +391,7 @@ def distance_sqrd_between_point_and_line(x, y, x1, y1, x2, y2):
         dist_sqrd = flat_earth_distance(y0, x0, y, x)
 
     return dist_sqrd
-    
+
 
 def connect_nodes_in_way(way, node_connections):
     if not is_routable_way(way):
@@ -406,7 +406,7 @@ def connect_nodes_in_way(way, node_connections):
                 node_connections[nd1].add(nd2)
                 node_connections[nd2].add(nd1)
     else:
-        
+
         # we can only go along in a line
 
         # say that each node is connected to each following node
@@ -461,7 +461,7 @@ def find_route(nodeA, nodeB, nodes, node_connections, keep_n_closest_routes=0, m
         steps += 1
         dont_care, still_dont_care, current_route, visited_combinations = heappop(going_out)
         end_point = current_route[-1]
-        
+
         # nodes we can go from here:
         from_here = set(x for x in node_connections[end_point] if x not in visited_combinations and x != end_point)
         new_routes = [current_route+[x] for x in from_here]
@@ -477,5 +477,5 @@ def find_route(nodeA, nodeB, nodes, node_connections, keep_n_closest_routes=0, m
 
 
     return
-            
+
 main()
