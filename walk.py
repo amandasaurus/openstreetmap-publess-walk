@@ -142,7 +142,6 @@ def main():
     print "GEOMETRYCOLLECTION("+",".join("POINT(%f %f)" % (nodes[pub]['lon'], nodes[pub]['lat']) for pub in pubs)+")"
     print "Pubs"
     print len(pubs)
-    return
 
     transdublin_points = one_side_of_dublin_to_the_other()
     print "Connections:"
