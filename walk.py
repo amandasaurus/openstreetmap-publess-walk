@@ -14,8 +14,8 @@ import os.path
 # in metres
 EARTH_RADIUS = 6367 * 1000
 
-def is_pub(node):
-    return node['tags'].get("amenity") == 'pub'
+def is_pub(obj):
+    return obj['tags'].get("amenity") == 'pub'
 
 def parse_osm_file(osm_file):
     """
@@ -26,7 +26,7 @@ def parse_osm_file(osm_file):
     nodes_ways = defaultdict(list)
     ways_ways = defaultdict(dict)
     node_connections = defaultdict(set)
-    pubs = set()
+    pubs = []
 
     tree = ElementTree()
     tree.parse(osm_file)
@@ -39,7 +39,7 @@ def parse_osm_file(osm_file):
             n['tags'] = dict((x.attrib['k'], x.attrib['v']) for x in node.findall("tag"))
             nodes[int(n['id'])] = n
             if is_pub(n):
-                pubs.add(n['id'])
+                pubs.append(n)
 
     with print_status("Getting ways... "):
         for way in tree.getiterator("way"):
@@ -54,6 +54,16 @@ def parse_osm_file(osm_file):
             w['nodes'] = [nodes[x] for x in nds]
             connect_nodes_in_way(w, node_connections)
             ways[w['id']] = w
+
+            # a pub tagged as a building
+            # for position just use avg of nodes
+            if is_pub(w):
+                for n in w['nodes']:
+                    new_w = deepcopy(w)
+                    new_w['lat'] = n['lat']
+                    new_w['lon'] = n['lon']
+
+                    pubs.append(new_w)
 
     return nodes, ways, nodes_ways, ways_ways, node_connections, pubs
 
@@ -118,15 +128,14 @@ def circle_around(x0, y0, radius_m, num_points=20):
 
     return result
 
-def circles_around_nodes(node_ids, nodes, distance_m):
+def circles_around_nodes(nodes, distance_m):
     results = []
-    for node_id in node_ids:
-        node = nodes[node_id]
+    for node in nodes:
         results.append(circle_around(node['lon'], node['lat'], distance_m))
     return results
 
-def circles_around_nodes_wkt(node_ids, nodes, distance_m):
-    circles = circles_around_nodes(node_ids, nodes, distance_m)
+def circles_around_nodes_wkt(nodes, distance_m):
+    circles = circles_around_nodes(nodes, distance_m)
     return "MULTILINESTRING("+", ".join("("+", ".join(["%s %s" % point for point in circle]+["%s %s" % circle[0]]) + ")" for circle in circles)+")"
 
 def ensure_all_nodes_exists(all_nodes, transdublin_points):
@@ -143,7 +152,7 @@ def main():
         nodes, ways, nodes_ways, ways_ways, node_connections, pubs = parse_osm_file(osm_file)
 
     print "The pubs that are known:"
-    print "GEOMETRYCOLLECTION("+",".join("POINT(%f %f)" % (nodes[pub]['lon'], nodes[pub]['lat']) for pub in pubs)+")"
+    print "GEOMETRYCOLLECTION("+",".join("POINT(%f %f)" % (pub['lon'], pub['lat']) for pub in pubs)+")"
     print "Pubs"
     print len(pubs)
 
@@ -155,12 +164,12 @@ def main():
 
     routes = []
     original_node_connections = deepcopy(node_connections)
-    for distance in range(35, 1, -1):
+    for distance in range(20, 15, -1):
         node_connections = deepcopy(original_node_connections)
         routes_at_start = len(routes)
         print "Trying with a buffer of %dm" % distance
         print "The buffer areas of %sm around the pubs" % (distance)
-        print circles_around_nodes_wkt(pubs, nodes, distance)
+        print circles_around_nodes_wkt(pubs, distance)
 
 
         with print_status("Removing nodes that are within %dm of a pub..."%distance):
@@ -181,7 +190,7 @@ def main():
         print "About to look for a route, there are ", sum(len(x) for x in node_connections.values())/2, " node connections"
         for start, end in transdublin_points:
             print "Distance to cover: LINESTRING(%s %s, %s %s)" % (nodes[start]['lon'], nodes[start]['lat'], nodes[end]['lon'], nodes[end]['lat'])
-            for route in itertools.islice(find_route(start, end, nodes, node_connections, keep_n_closest_routes=500, max_steps=10000000), 5):
+            for route in itertools.islice(find_route(start, end, nodes, node_connections, keep_n_closest_routes=5000, max_steps=1000000), 50):
                 if len(routes) == 0:
                     print "Found a route! distance = %d" % distance
                 routes.append(route)
@@ -366,8 +375,6 @@ def remove_node_connections_close_to_pub(nodes, pubs, node_connections, distance
 
 
         for pub in pubs:
-            pub = nodes[pub]
-
 
             x3, y3 = float(pub['lon']), float(pub['lat'])
             dist_sqrd = distance_sqrd_between_point_and_line(x3, y3, x1, y1, x2, y2)
