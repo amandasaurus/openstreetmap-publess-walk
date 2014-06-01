@@ -58,12 +58,15 @@ def parse_osm_file(osm_file):
             # a pub tagged as a building
             # for position just use avg of nodes
             if is_pub(w):
+                sum_lat, sum_lon = 0, 0
                 for n in w['nodes']:
-                    new_w = deepcopy(w)
-                    new_w['lat'] = n['lat']
-                    new_w['lon'] = n['lon']
+                    sum_lat += n['lat']
+                    sum_lon += n['lon']
 
-                    pubs.append(new_w)
+                new_w = deepcopy(w)
+                new_w['lat'] = sum_lat / len(w['nodes'])
+                new_w['lon'] = sum_lon / len(w['nodes'])
+                pubs.append(new_w)
 
     return nodes, ways, nodes_ways, ways_ways, node_connections, pubs
 
