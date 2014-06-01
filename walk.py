@@ -167,7 +167,7 @@ def main():
 
     routes = []
     original_node_connections = deepcopy(node_connections)
-    for distance in range(20, 15, -1):
+    for distance in range(30, 10, -3):
         node_connections = deepcopy(original_node_connections)
         routes_at_start = len(routes)
         print "Trying with a buffer of %dm" % distance
@@ -193,7 +193,7 @@ def main():
         print "About to look for a route, there are ", sum(len(x) for x in node_connections.values())/2, " node connections"
         for start, end in transdublin_points:
             print "Distance to cover: LINESTRING(%s %s, %s %s)" % (nodes[start]['lon'], nodes[start]['lat'], nodes[end]['lon'], nodes[end]['lat'])
-            for route in itertools.islice(find_route(start, end, nodes, node_connections, keep_n_closest_routes=5000, max_steps=1000000), 50):
+            for route in itertools.islice(find_route(start, end, nodes, node_connections, keep_n_closest_routes=5000, max_steps=10000), 5):
                 if len(routes) == 0:
                     print "Found a route! distance = %d" % distance
                 routes.append(route)
